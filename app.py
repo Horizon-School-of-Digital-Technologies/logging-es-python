@@ -2,7 +2,16 @@ import requests
 import uuid
 from flask import Flask, request, render_template, session
 from logging.config import dictConfig
+from pyeslogging.handlers import PYESHandler
 
+
+esHandler = PYESHandler(hosts=[{'host': 'localhost', 'port': 9200}],
+
+                           auth_type=PYESHandler.AuthType.NO_AUTH,
+
+                           es_index_name="my_python_index",
+
+                           es_additional_fields={'App': 'MyAppName', 'Environment': 'Dev'})
 
 dictConfig(
     {
@@ -23,13 +32,8 @@ dictConfig(
                 "filename": "worldClock.log",
                 "formatter": "default",
             },
-            "logtail": {
-                "class": "logtail.LogtailHandler",
-                "source_token": "qU73jvQjZrNFHimZo4miLdxF",
-                "formatter": "default",
-            },
         },
-        "root": {"level": "DEBUG", "handlers": ["console", "file", "logtail"]},
+        "root": {"level": "DEBUG", "handlers": ["console", "file"]},
     }
 )
 
@@ -37,6 +41,7 @@ app = Flask(__name__)
 
 app.secret_key = "c00de22a8b1e4daa2cabc8b3f82fdb753574293f8b673f9a"
 
+app.logger.addHandler(esHandler)
 
 @app.route("/")
 def home():
